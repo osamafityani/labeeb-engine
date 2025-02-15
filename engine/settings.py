@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -88,10 +90,14 @@ WSGI_APPLICATION = 'engine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': '/cloudsql/inner-lightning-449610-i7:YOUR_REGION:YOUR_INSTANCE_NAME',
-        'USER': os.getenv('DB_USER', 'your_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'your_password'),
-        'NAME': os.getenv('DB_NAME', 'your_db_name'),
+        'HOST': 'db-postgresql-nyc3-61573-do-user-19135733-0.l.db.ondigitalocean.com',
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'PORT': '25060',
+        'NAME': os.getenv('DB_NAME', ''),
+        'OPTIONS': {
+            'sslmode': 'require',  # Enforces SSL connection
+        },
     }
 }
 
