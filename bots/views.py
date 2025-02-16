@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from .tasks import record_meeting
 
 
 class RecordMeetingView(APIView):
-    parser_classes = [MultiPartParser]
+    parser_classes = [JSONParser]
 
     def post(self, request, *args, **kwargs):
         meeting_url = request.data.get('meeting_url')
