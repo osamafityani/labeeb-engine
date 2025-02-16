@@ -61,13 +61,12 @@ def record_meeting(meeting_url, bot_name="Faris2"):
                     time.sleep(30)
                     continue
                 print("\n\nMeeting URL: ", meeting_data["video_url"])
+                download_recording(meeting_data["video_url"])
                 break
             else:
                 print("Failed to retrieve meeting details:",
                       meeting_result["message"])
                 time.sleep(30)
-
-        download_recording(meeting_data["video_url"])
 
     else:
         print("Failed to create bot:", result["message"])

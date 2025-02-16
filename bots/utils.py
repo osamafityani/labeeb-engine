@@ -3,7 +3,11 @@ import requests
 import ssl
 from dotenv import load_dotenv
 from .env_loader import get_env_variable
-
+import requests
+import io
+from pydub import AudioSegment
+from django.core.files.base import ContentFile
+from transcription.models import Meeting
 
 def create_bot(meeting_url: str, bot_name: str):
     """
@@ -178,22 +182,31 @@ def get_meeting(bot_id: str):
         return {"status": "error", "message": str(e)}
 
 
-def download_recording(recording_url):
-    # URL of the file to download
+def download_recording(video_url, team="", project=""):
+    response = requests.get(video_url, stream=True)
 
-    # Output file path
-    output_file = "downloaded_video.mp4"
+    if response.status_code == 200:
+        # Read MP4 content into memory
+        mp4_buffer = io.BytesIO()
+        for chunk in response.iter_content(1024):
+            mp4_buffer.write(chunk)
+        mp4_buffer.seek(0)  # Reset buffer position
 
-    try:
-        # Send GET request to the URL
-        response = requests.get(recording_url, stream=True)
-        response.raise_for_status()  # Check for HTTP request errors
+        # Convert MP4 to MP3 in memory
+        audio = AudioSegment.from_file(mp4_buffer, format="mp4")
+        mp3_buffer = io.BytesIO()
+        audio.export(mp3_buffer, format="mp3")
+        mp3_buffer.seek(0)  # Reset buffer position
 
-        # Write the file to disk in chunks
-        with open(output_file, "wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):  # 8 KB chunks
-                file.write(chunk)
+        # Save Meeting instance
+        meeting = Meeting.objects.create(
+            team=team,
+            project=project,
+            status="completed"
+        )
+        meeting.audio_file.save(f"meeting_{meeting.id}.mp3", ContentFile(mp3_buffer.read()))
 
-        print(f"File downloaded successfully as '{output_file}'")
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        print(f"Meeting {meeting.id} saved successfully!")
+
+    else:
+        print("Failed to download recording.")
