@@ -15,6 +15,8 @@ class Meeting(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        print(f"audio file {self.audio_file} embeddings {self.embeddings}")
         if self.audio_file and not self.embeddings:
+            print(f"Task created for meeting {self.pk}")
             process_meeting_uploaded_file.delay(self.pk)
             super(Meeting, self).save(*args, **kwargs)
