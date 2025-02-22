@@ -104,7 +104,7 @@ def ask(
         temperature=0
     )
     response_message = response.choices[0].message.content
-    return message, response_message
+    return response_message
 
 
 def answer_query(query):
