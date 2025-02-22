@@ -18,7 +18,7 @@ def search_similar_embeddings(query_embedding):
     sql_query = """
         SELECT transcription_file
         FROM transcription_meeting
-        ORDER BY embeddings <-> %s
+        ORDER BY embeddings <-> %s::vector
         LIMIT 5;
     """
     with connection.cursor() as cursor:
