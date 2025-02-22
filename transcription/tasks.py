@@ -9,7 +9,7 @@ def process_meeting_uploaded_file(meeting_id):
     meeting = Meeting.objects.get(id=meeting_id)
 
     transcription = transcription_pipeline(meeting.audio_file.path)
-    meeting.transcription_file.save("transcription.txt", ContentFile(summarize(transcription)))  # TODO: randomize file naming
+    meeting.transcription_file.save("transcription.txt", ContentFile(summarize(transcription)), save=False)  # TODO: randomize file naming
 
     embeddings = embedding_pipeline(transcription)
     meeting.embeddings = embeddings
