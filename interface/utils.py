@@ -62,7 +62,6 @@ def num_tokens(text: str, model: str = GPT_MODELS[0]) -> int:
 def query_message(
     client,
     query: str,
-    df: pd.DataFrame,
     model: str,
     token_budget: int
 ) -> str:
