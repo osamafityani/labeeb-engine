@@ -242,12 +242,12 @@ def embedding_pipeline(content):
         batch_embeddings = [e.embedding for e in response.data]
         embeddings.extend(batch_embeddings)
 
-    df = pd.DataFrame({"text": strings, "embedding": embeddings})
+    # df = pd.DataFrame({"text": strings, "embedding": embeddings})
+    #
+    # SAVE_PATH = "data/meeting.csv"
+    #
+    # df.to_csv(SAVE_PATH, index=False)
 
-    SAVE_PATH = "data/meeting.csv"
-
-    df.to_csv(SAVE_PATH, index=False)
-
-    return str(df)  # TODO: return embeddings in proper format
+    return embeddings
 
 

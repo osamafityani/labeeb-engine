@@ -5,3 +5,6 @@ celery.yaml
 video.mp4
 templates
 .idea
+.env
+
+migrations

@@ -17,7 +17,7 @@ class MeetingFileUploadView(APIView):
             return Response({"error": "No file provided."}, status=400)
 
         uploaded_file = Meeting.objects.create(audio_file=file, status='pending')
-        process_meeting_uploaded_file.delay(uploaded_file.id)
+        process_meeting_uploaded_file.delay(uploaded_file)
         return Response({"message": "Meeting file uploaded and processing started.", "file_id": uploaded_file.id})
 
 
