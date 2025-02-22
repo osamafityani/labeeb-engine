@@ -20,3 +20,5 @@ class Meeting(models.Model):
             print(f"Task created for meeting {self.pk}")
             process_meeting_uploaded_file.delay(self.pk)
             super(Meeting, self).save(*args, **kwargs)
+        else:
+            super(Meeting, self).save(*args, **kwargs)
