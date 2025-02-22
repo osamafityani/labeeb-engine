@@ -31,7 +31,7 @@ def search_similar_embeddings(query_embedding):
     for (file_path,) in results:
         if file_path:  # Ensure file exists
             try:
-                with open(file_path, "r", encoding="utf-8") as file:
+                with open("media/" + file_path, "r", encoding="utf-8") as file:
                     transcription_texts.append(file.read())
             except Exception as e:
                 transcription_texts.append(f"Error reading {file_path}: {e}")
