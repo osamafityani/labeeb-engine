@@ -51,7 +51,7 @@ def transcribe_audio(audio_path):
     return transcription_segments
 
 
-def match_speakers_to_transcript(speaker_segments, transcription_segments):
+def match_speakers_to_transcript(transcription_segments):
     """
     Match speakers to the transcript using timestamps.
 
@@ -79,11 +79,11 @@ def match_speakers_to_transcript(speaker_segments, transcription_segments):
 
 def transcription_pipeline(audio_path):
     # Load the diarization pipeline
-    diarization_pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization')
+    # diarization_pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization')
 
     # Step 1: Perform speaker diarization
     print("Performing speaker diarization...")
-    speaker_segments = split_audio_by_speaker(audio_path, diarization_pipeline)
+    # speaker_segments = split_audio_by_speaker(audio_path, diarization_pipeline)
 
     # Step 2: Perform speech-to-text transcription
     print("Transcribing audio...")
@@ -91,10 +91,8 @@ def transcription_pipeline(audio_path):
 
     # Step 3: Match speakers with transcript
     print("Matching speakers with transcript...")
-    combined_transcript = match_speakers_to_transcript(speaker_segments, transcription_segments)
-    print(combined_transcript)
     # return the final transcript
-    return combined_transcript
+    return " \n ".join([seg['text'] for seg in transcription_segments])
 
 
 def summarize(content):
