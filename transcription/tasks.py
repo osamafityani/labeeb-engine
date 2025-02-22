@@ -4,7 +4,10 @@ from .utils import transcription_pipeline, summarize, embedding_pipeline
 
 
 @shared_task
-def process_meeting_uploaded_file(meeting):
+def process_meeting_uploaded_file(meeting_id):
+    from .models import Meeting
+    meeting = Meeting.objects.get(id=meeting_id)
+
     transcription = transcription_pipeline(meeting.audio_file.path)
     meeting.transcription_file.save("transcription.txt", ContentFile(summarize(transcription)))  # TODO: randomize file naming
 
