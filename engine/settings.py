@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'engine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': 'db-postgresql-nyc3-61573-do-user-19135733-0.l.db.ondigitalocean.com',
+        'HOST': 'engine-psql-do-user-19135733-0.h.db.ondigitalocean.com',
         'USER': os.getenv('DB_USER', ''),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'PORT': '25060',
