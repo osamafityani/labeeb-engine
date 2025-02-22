@@ -14,7 +14,7 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 
 def search_similar_embeddings(query_embedding):
     """Finds the most similar transcriptions and returns their text content."""
-
+    print(query_embedding)
     sql_query = """
         SELECT transcription_file
         FROM transcription_meeting
@@ -27,6 +27,7 @@ def search_similar_embeddings(query_embedding):
 
     # Read the contents of each transcription file
     transcription_texts = []
+    print(results)
     for (file_path,) in results:
         if file_path:  # Ensure file exists
             try:
@@ -103,7 +104,7 @@ def ask(
         temperature=0
     )
     response_message = response.choices[0].message.content
-    return response_message
+    return message, response_message
 
 
 def answer_query(query):

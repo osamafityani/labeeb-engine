@@ -14,8 +14,8 @@ def ask(request):
 
     # Get the string from the request body
     query = request.data['query']
-    result = answer_query(query)
+    message, result = answer_query(query)
 
     # Optionally, you can process the string or do something with it
     # For example, you can return the string back in the response
-    return Response({"answer": result}, status=status.HTTP_200_OK)
+    return Response({"answer": message}, status=status.HTTP_200_OK)
