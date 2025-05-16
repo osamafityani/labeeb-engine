@@ -5,7 +5,7 @@ from authentication.models import CustomUser
 
 
 def generate_pin():
-    random_code = ''.join([str(random.randint(1, 9)) for i in range(5)])
+    random_code = ''.join([str(random.randint(1, 9)) for i in range(6)])
     return random_code
 
 

@@ -3,6 +3,7 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from django.utils.translation import gettext_lazy as _
+from teams.models import Team
 
 
 class CustomUserManager(BaseUserManager):
@@ -28,10 +29,12 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
     first_name = models.CharField(max_length=40)
     last_name = models.CharField(max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True)
     email = models.EmailField(unique=True)
+    team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True)
+    team_role = models.CharField(max_length=50, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)

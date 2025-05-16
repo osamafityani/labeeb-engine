@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'bots',
     'interface',
     'transcription',
+    'teams',
     'django_celery_results',
     'django.contrib.admin',
     'django.contrib.auth',
