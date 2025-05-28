@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-y=t&wtsx+32hfru4_cb0(_!cds*a(z_plbrfxsr=2o_b7$nt+8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["salesubscribe.com", "www.salesubscribe.com", "134.209.165.22"]
+ALLOWED_HOSTS = ["salesubscribe.com", "www.salesubscribe.com", "134.209.165.22", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -156,3 +156,17 @@ AUTH_USER_MODEL = 'authentication.CustomUser'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = ["*"]
 CSRF_TRUSTED_ORIGINS = ['https://salesubscribe.com']
+
+# REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler'
+}

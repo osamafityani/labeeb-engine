@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import CustomUser
+from teams.models import Team
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -15,7 +16,20 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = CustomUser.objects.create(**validated_data)
+        validated_data.pop('referral_code', None)  # Remove referral code if present
+        
+        # Create a team for the user
+        team = Team.objects.create(
+            name=f"{validated_data['first_name']}'s Team",
+            company=None
+        )
+        
+        # Create the user with the team
+        user = CustomUser.objects.create(
+            **validated_data,
+            team=team,
+            team_role='owner'  # Set as team owner
+        )
         user.set_password(password)
         user.save()
 

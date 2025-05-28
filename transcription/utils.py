@@ -100,7 +100,18 @@ def summarize(content):
     completion = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are responsible for the documentation of meetings in XYZ corporate. You will be given transcript for a meeting, and you should write minutes of meeting. Include these things in the header: Team Name, Project Name (use reasoning if not explicitly mentioned). In the footer, generate action items based on the text if applicable. Meetings and summaries are in Arabic"},
+            {"role": "system", "content": """You are responsible for documenting meetings. You will be given a transcript for a meeting, and you should write a structured summary. Please include the following information in your summary, if any information is not available, write "Not mentioned":
+
+1. Meeting Name:
+2. Related Project:
+3. Location:
+4. Date:
+5. Time:
+6. Participants: (List all participants mentioned in the transcript)
+7. Meeting Summary: (A concise summary of the key points discussed)
+8. Action Plan: (List any action items, tasks, or next steps mentioned in the meeting)
+
+Please maintain this exact structure in your response. The summary should be clear and professional. Meetings and summaries are in Arabic."""},
             {
                 "role": "user",
                 "content": content
@@ -108,8 +119,17 @@ def summarize(content):
         ]
     )
     summary = completion.choices[0].message.content
-
-    return summary
+    
+    # Extract meeting name from the summary
+    meeting_name = "Untitled Meeting"
+    for line in summary.split('\n'):
+        if line.startswith('1. Meeting Name:'):
+            name = line.replace('1. Meeting Name:', '').strip()
+            if name.lower() != 'not mentioned':
+                meeting_name = name
+            break
+    
+    return summary, meeting_name
 
 
 def num_tokens(text: str, model: str = 'gpt-4o-mini') -> int:

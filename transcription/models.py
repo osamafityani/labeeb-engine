@@ -26,6 +26,7 @@ class Meeting(models.Model):
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('completed', 'Completed')],
                               default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    summary = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         print(f"audio file {self.audio_file} embeddings {self.embeddings}")
