@@ -41,10 +41,40 @@ def create_bot(meeting_url: str, bot_name: str):
         "Authorization": f"Token {api_key}",
     }
 
-    # Define request body
+    # Define request body with automatic leave configuration
     body = {
         "meeting_url": meeting_url,
         "bot_name": bot_name,
+        "automatic_leave": {
+            # Leave 2 seconds after everyone leaves (default from docs)
+            "everyone_left_timeout": 2,
+            
+            # Bot detection using participant events
+            "bot_detection": {
+                "using_participant_events": {
+                    "timeout": 600,  # 10 minutes (default)
+                    "activate_after": 1200  # 20 minutes buffer (default)
+                },
+                # Bot detection using participant names
+                "using_participant_names": {
+                    "matches": ["bot", "ai", "faris", "notetaker"],  # Common bot names
+                    "timeout": 3600,  # 60 minutes (default)
+                    "activate_after": 1200  # 20 minutes buffer (default)
+                }
+            },
+            
+            # Silence detection
+            "silence_detection": {
+                "timeout": 3600,  # 60 minutes of silence (default)
+                "activate_after": 1200  # 20 minutes buffer (default)
+            },
+            
+            # Additional timeouts
+            "waiting_room_timeout": 1200,  # 20 minutes (default)
+            "noone_joined_timeout": 1200,  # 20 minutes (default)
+            "in_call_not_recording_timeout": 3600,  # 60 minutes (default)
+            "recording_permission_denied_timeout": 3600  # 60 minutes (default)
+        }
     }
 
     try:

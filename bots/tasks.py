@@ -9,7 +9,7 @@ from transcription.models import Project
 def record_meeting(meeting_url, bot_name="AI", project_id=None):
     """
     Main entry point for the meeting bot automation program.
-    Creates a bot for a meeting and removes it after recording is complete.
+    Creates a bot for a meeting and lets it record until it automatically leaves based on meeting conditions.
     
     Args:
         meeting_url (str): URL of the meeting to record
@@ -42,44 +42,41 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
             remove_bot(bot_id)
             return
 
-        # Wait for 30 seconds before removing the bot
-        print("Waiting for 30 seconds before removing the bot...\n\n")
-        time.sleep(60)
-
-        # Stop recording the meeting
-        stop_result = stop_recording(bot_id)
-        if stop_result["status"] == "success":
-            print("Recording stopped successfully.\n\n")
-        else:
-            print("Failed to stop recording:", stop_result["message"])
-
-        # Remove the bot
-        remove_result = remove_bot(bot_id)
-        if remove_result["status"] == "success":
-            print("Bot removed successfully.\n\n")
-        else:
-            print("Failed to remove bot:", remove_result["message"])
-
-        # Wait for video URL to be available
-        count = 0
-        while count < 10:
-            # Retrieve and display the meeting details
+        # Keep checking the meeting status until the bot leaves or the meeting ends
+        while True:
             meeting_result = get_meeting(bot_id)
             if meeting_result["status"] == "success":
-                print("Meeting details retrieved successfully.\n\n")
                 meeting_data = meeting_result["data"]
-                if not meeting_data["video_url"]:
-                    time.sleep(30)
-                    count += 1
-                    continue
-                print("\n\nMeeting URL: ", meeting_data["video_url"])
-                # Pass project objects to download_recording
-                download_recording(meeting_data["video_url"], project=project)
-                break
+                # Check if the bot has left the meeting
+                if meeting_data.get("status") in ["ended", "left", "removed"]:
+                    print(f"Bot has left the meeting. Status: {meeting_data.get('status')}")
+                    break
+                time.sleep(30)  # Check every 30 seconds
             else:
-                print("Failed to retrieve meeting details:", meeting_result["message"])
+                print("Failed to get meeting status:", meeting_result["message"])
+                time.sleep(30)
+                continue
+
+        # Once the bot has left, wait for the video URL
+        count = 0
+        while count < 10:  # Try for 5 minutes (10 * 30 seconds)
+            meeting_result = get_meeting(bot_id)
+            if meeting_result["status"] == "success":
+                meeting_data = meeting_result["data"]
+                if meeting_data.get("video_url"):
+                    print("\n\nMeeting URL: ", meeting_data["video_url"])
+                    # Pass project objects to download_recording
+                    download_recording(meeting_data["video_url"], project=project)
+                    break
                 time.sleep(30)
                 count += 1
+            else:
+                print("Failed to get video URL:", meeting_result["message"])
+                time.sleep(30)
+                count += 1
+
+        if count >= 10:
+            print("Timeout waiting for video URL")
 
     else:
         print("Failed to create bot:", result["message"])
