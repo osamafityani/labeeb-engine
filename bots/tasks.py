@@ -30,12 +30,13 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
 
     if result["status"] == "success":
         bot_id = result["data"].get("id")
-        print("Bot created successfully.\n\n")
+        print("Bot created successfully with ID:", bot_id)
 
         # Start recording the meeting
         record_result = start_recording(bot_id)
         if record_result["status"] == "success":
-            print("Recording started successfully.\n\n")
+            print("Recording started successfully.")
+            print("Waiting for meeting to complete...")
         else:
             print("Failed to start recording:", record_result["message"])
             # If recording fails, remove the bot immediately
@@ -43,14 +44,27 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
             return
 
         # Keep checking the meeting status until the bot leaves or the meeting ends
+        recording_completed = False
         while True:
             meeting_result = get_meeting(bot_id)
             if meeting_result["status"] == "success":
                 meeting_data = meeting_result["data"]
+                current_status = meeting_data.get("status", "unknown")
+                print(f"Current meeting status: {current_status}")
+                
                 # Check if the bot has left the meeting
-                if meeting_data.get("status") in ["ended", "left", "removed"]:
-                    print(f"Bot has left the meeting. Status: {meeting_data.get('status')}")
+                if current_status in ["ended", "left", "removed"]:
+                    print(f"Bot has left the meeting. Status: {current_status}")
+                    recording_completed = True
                     break
+                elif current_status == "done":
+                    print("Recording is ready for download")
+                    recording_completed = True
+                    break
+                elif current_status == "failed":
+                    print(f"Recording failed. Error: {meeting_data.get('error', 'Unknown error')}")
+                    break
+                
                 time.sleep(30)  # Check every 30 seconds
             else:
                 print("Failed to get meeting status:", meeting_result["message"])
@@ -58,25 +72,33 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
                 continue
 
         # Once the bot has left, wait for the video URL
-        count = 0
-        while count < 10:  # Try for 5 minutes (10 * 30 seconds)
-            meeting_result = get_meeting(bot_id)
-            if meeting_result["status"] == "success":
-                meeting_data = meeting_result["data"]
-                if meeting_data.get("video_url"):
-                    print("\n\nMeeting URL: ", meeting_data["video_url"])
-                    # Pass project objects to download_recording
-                    download_recording(meeting_data["video_url"], project=project)
-                    break
-                time.sleep(30)
-                count += 1
-            else:
-                print("Failed to get video URL:", meeting_result["message"])
-                time.sleep(30)
-                count += 1
+        if recording_completed:
+            print("Waiting for video URL to become available...")
+            count = 0
+            while count < 20:  # Try for 10 minutes (20 * 30 seconds)
+                meeting_result = get_meeting(bot_id)
+                if meeting_result["status"] == "success":
+                    meeting_data = meeting_result["data"]
+                    print(f"Meeting data status: {meeting_data.get('status')}")
+                    print(f"Video URL status: {'Available' if meeting_data.get('video_url') else 'Not available yet'}")
+                    
+                    if meeting_data.get("video_url"):
+                        print("Video URL found:", meeting_data["video_url"])
+                        # Pass project objects to download_recording
+                        download_recording(meeting_data["video_url"], project=project)
+                        print("Recording downloaded and processed successfully")
+                        break
+                    time.sleep(30)
+                    count += 1
+                else:
+                    print("Failed to get video URL:", meeting_result["message"])
+                    time.sleep(30)
+                    count += 1
 
-        if count >= 10:
-            print("Timeout waiting for video URL")
+            if count >= 20:
+                print("Timeout waiting for video URL after 10 minutes")
+        else:
+            print("Recording was not completed successfully, skipping video download")
 
     else:
         print("Failed to create bot:", result["message"])
