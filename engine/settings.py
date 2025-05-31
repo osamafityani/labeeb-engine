@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ["salesubscribe.com", "www.salesubscribe.com", "134.209.165.22",
 INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
     'authentication',
     'profiles',
     'bots',
