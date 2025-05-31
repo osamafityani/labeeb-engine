@@ -12,17 +12,34 @@ GPT_MODELS = ["gpt-4o", "gpt-4o-mini"]
 EMBEDDING_MODEL = "text-embedding-3-small"
 
 
-def search_similar_embeddings(query_embedding):
-    """Finds the most similar transcriptions and returns their text content."""
-    print(query_embedding)
-    sql_query = """
-        SELECT transcription_file
-        FROM transcription_meeting
-        ORDER BY embeddings <-> %s::vector
-        LIMIT 5;
+def search_similar_embeddings(query_embedding, user_team_id=None):
     """
+    Finds the most similar transcriptions and returns their text content.
+    Filters by user's team if team_id is provided.
+    """
+    print(query_embedding)
+    
+    if user_team_id:
+        sql_query = """
+            SELECT m.transcription_file
+            FROM transcription_meeting m
+            JOIN transcription_project p ON m.project_id = p.id
+            WHERE p.team_account_id = %s
+            ORDER BY m.embeddings <-> %s::vector
+            LIMIT 5;
+        """
+        params = [user_team_id, query_embedding]
+    else:
+        sql_query = """
+            SELECT transcription_file
+            FROM transcription_meeting
+            ORDER BY embeddings <-> %s::vector
+            LIMIT 5;
+        """
+        params = [query_embedding]
+
     with connection.cursor() as cursor:
-        cursor.execute(sql_query, [query_embedding])
+        cursor.execute(sql_query, params)
         results = cursor.fetchall()
 
     # Read the contents of each transcription file
@@ -42,15 +59,19 @@ def search_similar_embeddings(query_embedding):
 def strings_ranked_by_relatedness(
     client,
     query: str,
+    user_team_id: int = None,
     top_n: int = 1
 ):
-    """Returns a list of strings and relatednesses, sorted from most related to least."""
+    """
+    Returns a list of strings and relatednesses, sorted from most related to least.
+    Filters by user's team if team_id is provided.
+    """
     query_embedding_response = client.embeddings.create(
         model=EMBEDDING_MODEL,
         input=query,
     )
     query_embedding = query_embedding_response.data[0].embedding
-    strings = search_similar_embeddings(query_embedding)
+    strings = search_similar_embeddings(query_embedding, user_team_id)
     return strings[:top_n]
 
 
@@ -63,11 +84,12 @@ def num_tokens(text: str, model: str = GPT_MODELS[0]) -> int:
 def query_message(
     client,
     query: str,
-    model: str,
-    token_budget: int
+    user_team_id: int = None,
+    model: str = GPT_MODELS[0],
+    token_budget: int = 4096 - 500,
 ) -> str:
     """Return a message for GPT, with relevant source texts pulled from a dataframe."""
-    strings = strings_ranked_by_relatedness(client, query)
+    strings = strings_ranked_by_relatedness(client, query, user_team_id)
     introduction = 'Use the below minutes of meetings to answer the subsequent question. If the answer cannot be found in the summaries, write "I could not find an answer."'
     question = f"\n\nQuestion: {query}"
     message = introduction
@@ -86,12 +108,13 @@ def query_message(
 def ask(
     client,
     query: str,
+    user_team_id: int = None,
     model: str = GPT_MODELS[0],
     token_budget: int = 4096 - 500,
     print_message: bool = False,
 ) -> str:
     """Answers a query using GPT and a dataframe of relevant texts and embeddings."""
-    message = query_message(client, query, model=model, token_budget=token_budget)
+    message = query_message(client, query, user_team_id, model=model, token_budget=token_budget)
     if print_message:
         print(message)
     messages = [
