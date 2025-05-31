@@ -49,23 +49,27 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
             meeting_result = get_meeting(bot_id)
             if meeting_result["status"] == "success":
                 meeting_data = meeting_result["data"]
-                meeting_metadata = meeting_data.get("meeting_metadata") or {}
-                current_status = meeting_metadata.get("status") or {}
-                current_status = current_status.get("code", "unknown")
-                print(meeting_data)
-                print(meeting_metadata)
-                print(f"Current meeting status: {current_status}")
+                
+                # Get the latest status from status_changes
+                status_changes = meeting_data.get("status_changes", [])
+                current_status = status_changes[-1] if status_changes else {"code": "unknown"}
+                status_code = current_status.get("code", "unknown")
+                sub_code = current_status.get("sub_code")
+                
+                print(f"Current meeting status: {status_code} (sub_code: {sub_code})")
                 
                 # Check if the bot has left the meeting
-                if current_status in ["ended", "left", "removed"]:
-                    print(f"Bot has left the meeting. Status: {current_status}")
+                if status_code in ["call_ended", "done"]:
+                    print(f"Bot has left the meeting. Status: {status_code}")
+                    if sub_code:
+                        print(f"Sub code: {sub_code}")
                     recording_completed = True
                     break
-                elif current_status == "done":
+                elif status_code == "recording_done":
                     print("Recording is ready for download")
                     recording_completed = True
                     break
-                elif current_status == "failed":
+                elif status_code == "failed":
                     print(f"Recording failed. Error: {meeting_data.get('error', 'Unknown error')}")
                     break
                 
@@ -83,13 +87,20 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
                 meeting_result = get_meeting(bot_id)
                 if meeting_result["status"] == "success":
                     meeting_data = meeting_result["data"]
-                    print(f"Meeting data status: {meeting_data.get('status')}")
-                    print(f"Video URL status: {'Available' if meeting_data.get('video_url') else 'Not available yet'}")
+                    video_url = meeting_data.get("video_url")
                     
-                    if meeting_data.get("video_url"):
-                        print("Video URL found:", meeting_data["video_url"])
+                    # Also check recording status
+                    recordings = meeting_data.get("recordings", [])
+                    latest_recording = recordings[-1] if recordings else {}
+                    recording_status = latest_recording.get("status", {}).get("code") if latest_recording else None
+                    
+                    print(f"Recording status: {recording_status}")
+                    print(f"Video URL status: {'Available' if video_url else 'Not available yet'}")
+                    
+                    if video_url and recording_status == "done":
+                        print("Video URL found:", video_url)
                         # Pass project objects to download_recording
-                        download_recording(meeting_data["video_url"], project=project)
+                        download_recording(video_url, project=project)
                         print("Recording downloaded and processed successfully")
                         break
                     time.sleep(30)
