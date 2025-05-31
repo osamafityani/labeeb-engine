@@ -2,12 +2,11 @@ from celery import shared_task
 import time
 from .utils import (create_bot, remove_bot, start_recording, stop_recording,
                     get_meeting, download_recording)
-from teams.models import Team
 from transcription.models import Project
 
 
 @shared_task
-def record_meeting(meeting_url, bot_name="Faris2", team_id=None, project_id=None):
+def record_meeting(meeting_url, bot_name="AI", project_id=None):
     """
     Main entry point for the meeting bot automation program.
     Creates a bot for a meeting and removes it after recording is complete.
@@ -15,18 +14,10 @@ def record_meeting(meeting_url, bot_name="Faris2", team_id=None, project_id=None
     Args:
         meeting_url (str): URL of the meeting to record
         bot_name (str): Name of the bot (default: "Faris2")
-        team_id (int): ID of the team the recording belongs to
         project_id (int): ID of the project the recording belongs to
     """
-    # Get team and project objects
-    team = None
+    # Get project objects
     project = None
-    
-    if team_id:
-        try:
-            team = Team.objects.get(id=team_id)
-        except Team.DoesNotExist:
-            print(f"Team with id {team_id} not found")
             
     if project_id:
         try:
@@ -82,8 +73,8 @@ def record_meeting(meeting_url, bot_name="Faris2", team_id=None, project_id=None
                     count += 1
                     continue
                 print("\n\nMeeting URL: ", meeting_data["video_url"])
-                # Pass team and project objects to download_recording
-                download_recording(meeting_data["video_url"], team=team, project=project)
+                # Pass project objects to download_recording
+                download_recording(meeting_data["video_url"], project=project)
                 break
             else:
                 print("Failed to retrieve meeting details:", meeting_result["message"])

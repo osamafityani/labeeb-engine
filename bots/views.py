@@ -18,20 +18,12 @@ class RecordMeetingView(APIView):
                 "error": "meeting_url and project_id are required"
             }, status=400)
 
-        # Get team from authenticated user
-        team = request.user.team
-        if not team:
-            return Response({
-                "error": "User is not associated with any team"
-            }, status=400)
-
         bot_name = request.data.get('bot_name', 'Faris2')
         
         # Pass team_id and project_id to the Celery task
         record_meeting.delay(
             meeting_url=meeting_url,
             bot_name=bot_name,
-            team_id=team.id,
             project_id=project_id
         )
         
