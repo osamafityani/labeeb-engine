@@ -50,7 +50,7 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
             if meeting_result["status"] == "success":
                 meeting_data = meeting_result["data"]
                 meeting_metadata = meeting_data.get("meeting_metadata", {})
-                current_status = meeting_data.get("status", {})
+                current_status = meeting_metadata.get("status", {})
                 current_status = current_status.get("code", "unknown")
                 print(f"Current meeting status: {current_status}")
                 
