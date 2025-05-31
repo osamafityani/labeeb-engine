@@ -52,6 +52,8 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
                 meeting_metadata = meeting_data.get("meeting_metadata") or {}
                 current_status = meeting_metadata.get("status") or {}
                 current_status = current_status.get("code", "unknown")
+                print(meeting_data)
+                print(meeting_metadata)
                 print(f"Current meeting status: {current_status}")
                 
                 # Check if the bot has left the meeting
