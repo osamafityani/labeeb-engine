@@ -47,6 +47,7 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
         recording_completed = False
         while True:
             meeting_result = get_meeting(bot_id)
+            print(meeting_result)
             if meeting_result and "status_changes" in meeting_result:
                 status_changes = meeting_result["status_changes"]
                 if status_changes:
