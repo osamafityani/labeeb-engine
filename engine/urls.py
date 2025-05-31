@@ -6,4 +6,6 @@ urlpatterns = [
     path('api/', include('transcription.urls')),
     path('bots/', include('bots.urls')),
     path('interface/', include('interface.urls')),
+    path('auth/', include('authentication.urls')),
+    path('profiles/', include('profiles.urls')),
 ]
