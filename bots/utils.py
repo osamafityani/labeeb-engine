@@ -182,7 +182,15 @@ def get_meeting(bot_id: str):
         return {"status": "error", "message": str(e)}
 
 
-def download_recording(video_url, team="", project=""):
+def download_recording(video_url, team=None, project=None):
+    """
+    Downloads and processes a recording, saving it as a Meeting instance.
+    
+    Args:
+        video_url (str): URL of the video to download
+        team (Team): Team object the recording belongs to
+        project (Project): Project object the recording belongs to
+    """
     response = requests.get(video_url, stream=True)
 
     if response.status_code == 200:
@@ -206,7 +214,7 @@ def download_recording(video_url, team="", project=""):
         )
         meeting.audio_file.save(f"meeting_{meeting.id}.mp3", ContentFile(mp3_buffer.read()))
 
-        print(f"Meeting {meeting.id} saved successfully!")
+        print(f"Meeting {meeting.id} saved successfully with team {team.id if team else 'None'} and project {project.id if project else 'None'}!")
 
     else:
-        print("Failed to download recording.")
+        print(f"Failed to download recording. Status code: {response.status_code}")
