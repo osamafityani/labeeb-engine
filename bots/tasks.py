@@ -47,28 +47,29 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
         recording_completed = False
         while True:
             meeting_result = get_meeting(bot_id)
-            print(meeting_result)
-            if meeting_result and "status_changes" in meeting_result:
-                status_changes = meeting_result["status_changes"]
-                if status_changes:
-                    latest_status = status_changes[-1]  # Get the most recent status
-                    current_status = latest_status["code"]
-                    print(f"Current meeting status: {current_status} (sub_code: {latest_status.get('sub_code')})")
-                    
-                    # Check if the bot has left the meeting
-                    if current_status in ["call_ended", "recording_done", "done"]:
-                        print(f"Bot has left the meeting. Status: {current_status}")
-                        if latest_status.get("sub_code") == "timeout_exceeded_everyone_left":
-                            print("Meeting ended because everyone left")
-                        recording_completed = True
-                        break
-                    elif current_status == "failed":
-                        print(f"Recording failed. Error: {latest_status.get('message', 'Unknown error')}")
-                        break
-                    
+            if meeting_result["status"] == "success":
+                meeting_data = meeting_result["data"]
+                meeting_metadata = meeting_data.get("meeting_metadata", {})
+                current_status = meeting_data.get("status", {})
+                current_status = current_status.get("code", "unknown")
+                print(f"Current meeting status: {current_status}")
+                
+                # Check if the bot has left the meeting
+                if current_status in ["ended", "left", "removed"]:
+                    print(f"Bot has left the meeting. Status: {current_status}")
+                    recording_completed = True
+                    break
+                elif current_status == "done":
+                    print("Recording is ready for download")
+                    recording_completed = True
+                    break
+                elif current_status == "failed":
+                    print(f"Recording failed. Error: {meeting_data.get('error', 'Unknown error')}")
+                    break
+                
                 time.sleep(30)  # Check every 30 seconds
             else:
-                print("Failed to get meeting status or invalid response format")
+                print("Failed to get meeting status:", meeting_result["message"])
                 time.sleep(30)
                 continue
 
@@ -78,20 +79,21 @@ def record_meeting(meeting_url, bot_name="AI", project_id=None):
             count = 0
             while count < 20:  # Try for 10 minutes (20 * 30 seconds)
                 meeting_result = get_meeting(bot_id)
-                if meeting_result and "video_url" in meeting_result:
-                    video_url = meeting_result["video_url"]
-                    print(f"Video URL status: {'Available' if video_url else 'Not available yet'}")
+                if meeting_result["status"] == "success":
+                    meeting_data = meeting_result["data"]
+                    print(f"Meeting data status: {meeting_data.get('status')}")
+                    print(f"Video URL status: {'Available' if meeting_data.get('video_url') else 'Not available yet'}")
                     
-                    if video_url:
-                        print("Video URL found:", video_url)
+                    if meeting_data.get("video_url"):
+                        print("Video URL found:", meeting_data["video_url"])
                         # Pass project objects to download_recording
-                        download_recording(video_url, project=project)
+                        download_recording(meeting_data["video_url"], project=project)
                         print("Recording downloaded and processed successfully")
                         break
                     time.sleep(30)
                     count += 1
                 else:
-                    print("Failed to get video URL or invalid response format")
+                    print("Failed to get video URL:", meeting_result["message"])
                     time.sleep(30)
                     count += 1
 
