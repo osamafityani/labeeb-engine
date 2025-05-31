@@ -95,21 +95,34 @@ def transcription_pipeline(audio_path):
     return " \n ".join([seg['text'] for seg in transcription_segments])
 
 
-def summarize(content):
+def summarize(content, project=None):
     client = OpenAI()
+    
+    # Build project details string if project exists
+    project_details = ""
+    if project:
+        project_details = f"""
+Project Information:
+- Title: {project.title}
+- Description: {project.description}
+- Team: {project.team.name if project.team else 'No team assigned'}
+- Start Date: {project.start_date}
+- End Date: {project.end_date}
+"""
+    
     completion = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": """You are responsible for documenting meetings. You will be given a transcript for a meeting, and you should write a structured minutes of meeting. Please include the following information in your report, if any information is not available, write "Not mentioned":
+            {"role": "system", "content": f"""You are responsible for documenting meetings. You will be given a transcript for a meeting and project details, and you should write a structured minutes of meeting. Please include the following information in your report, if any information is not available, write "Not mentioned":
 
+{project_details}
 1. Meeting Name: (Try to deduce this from the transcript)
-2. Related Project:
-3. Location:
-4. Date:
-5. Time:
-6. Participants: (List all participants mentioned in the transcript)
-7. Meeting Transcript: (A detailed restructured transcript of everything discussed, mention as many details as possible)
-8. Action Plan: (List any action items, tasks, or next steps mentioned in the meeting)
+2. Related Project: (Use the project information provided above)
+3. Date:
+4. Time:
+5. Participants:
+6. Meeting Transcript: (A detailed restructured transcript of everything discussed, mention as many details as possible)
+7. Action Plan: (List any action items, tasks, or next steps mentioned in the meeting)
 
 Please maintain this exact structure in your response. The report should be clear and professional. Meetings and reports are in Arabic."""},
             {

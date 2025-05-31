@@ -11,7 +11,7 @@ def process_meeting_uploaded_file(meeting_id):
     meeting = Meeting.objects.get(id=meeting_id)
 
     transcription = transcription_pipeline(meeting.audio_file.path)
-    summary, meeting_title = summarize(transcription)
+    summary, meeting_title = summarize(transcription, project=meeting.project)
     
     # Create a unique filename using timestamp and UUID
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
