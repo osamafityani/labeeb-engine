@@ -108,7 +108,7 @@ def summarize(content):
 4. Date:
 5. Time:
 6. Participants: (List all participants mentioned in the transcript)
-7. Meeting Summary: (A concise summary of the key points discussed)
+7. Meeting Summary: (A detailed summary of the key points discussed, mention as many details as possible)
 8. Action Plan: (List any action items, tasks, or next steps mentioned in the meeting)
 
 Please maintain this exact structure in your response. The summary should be clear and professional. Meetings and summaries are in Arabic."""},

@@ -90,7 +90,24 @@ def query_message(
 ) -> str:
     """Return a message for GPT, with relevant source texts pulled from a dataframe."""
     strings = strings_ranked_by_relatedness(client, query, user_team_id)
-    introduction = 'Use the below minutes of meetings to answer the subsequent question. If the answer cannot be found in the summaries, write "I could not find an answer."'
+    
+    if not strings:
+        return (
+            "You are a helpful assistant that ALWAYS responds in Arabic. The user has asked a question about their meeting transcripts, "
+            "but I couldn't find any relevant meetings in their history. "
+            "Please respond with this message in Arabic: 'عذراً، لم أتمكن من العثور على أي معلومات ذات صلة في سجل اجتماعات فريقك. "
+            "قد يكون ذلك بسبب: \n"
+            "١. لم يتم تسجيل الاجتماع بعد\n"
+            "٢. لم تتم مناقشة الموضوع الذي تسأل عنه في أي من الاجتماعات المسجلة\n"
+            "٣. قد يكون الاجتماع في مساحة عمل فريق آخر\n\n"
+            "يرجى المحاولة:\n"
+            "- إعادة صياغة سؤالك\n"
+            "- التحقق من تسجيل الاجتماع\n"
+            "- التأكد من أنك في مساحة عمل الفريق الصحيح'\n\n"
+            f"Question: {query}"
+        )
+    
+    introduction = 'You are a helpful assistant that ALWAYS responds in Arabic. Use the below minutes of meetings to answer the subsequent question. If the answer cannot be found in the summaries, respond in Arabic with: "عذراً، لم أتمكن من العثور على إجابة محددة لسؤالك في محاضر الاجتماعات المتوفرة. هل يمكنك إعادة صياغة سؤالك أو تقديم المزيد من التفاصيل؟"'
     question = f"\n\nQuestion: {query}"
     message = introduction
     for string in strings:
@@ -118,7 +135,7 @@ def ask(
     if print_message:
         print(message)
     messages = [
-        {"role": "system", "content": "You answer questions about the minutes of meetings"},
+        {"role": "system", "content": "You are an assistant that ALWAYS responds in Arabic. You answer questions about the minutes of meetings. Even if the question is in English, you must respond in Arabic."},
         {"role": "user", "content": message},
     ]
     response = client.chat.completions.create(
