@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Meeting, Project
+from .models import Meeting, Project, ActionItem
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -31,3 +31,16 @@ class MeetingUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
         fields = ['title', 'project', 'summary']  # Allow updating title, project, and summary
+
+
+class ActionItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActionItem
+        fields = ['id', 'text', 'due_by', 'completed', 'meeting', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class ActionItemCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActionItem
+        fields = ['text', 'due_by', 'completed', 'meeting']

@@ -36,3 +36,15 @@ class Meeting(models.Model):
             super(Meeting, self).save(*args, **kwargs)
         else:
             super(Meeting, self).save(*args, **kwargs)
+
+
+class ActionItem(models.Model):
+    text = models.TextField()
+    due_by = models.DateTimeField(blank=True, null=True)
+    completed = models.BooleanField(default=False)
+    meeting = models.ForeignKey(Meeting, related_name='action_items', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.text[:50]}..."

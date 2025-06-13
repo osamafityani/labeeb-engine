@@ -4,12 +4,14 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from .models import Meeting, Project
+from .models import Meeting, Project, ActionItem
 from .serializers import (
     MeetingSerializer, 
     MeetingUpdateSerializer,
     ProjectSerializer,
-    ProjectCreateUpdateSerializer
+    ProjectCreateUpdateSerializer,
+    ActionItemSerializer,
+    ActionItemCreateUpdateSerializer
 )
 from .tasks import process_meeting_uploaded_file
 
@@ -137,3 +139,41 @@ class MeetingStatusView(APIView):
                 {"error": "Meeting not found or not accessible."}, 
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class ActionItemViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for viewing and editing action items.
+    
+    Query Parameters:
+    - meeting_id: Filter action items by meeting ID
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = ActionItem.objects.filter(meeting__project__team_account=self.request.user.team)
+        
+        # Filter by meeting_id if provided
+        meeting_id = self.request.query_params.get('meeting_id', None)
+        if meeting_id is not None:
+            queryset = queryset.filter(meeting_id=meeting_id)
+            
+            # If no action items found for this meeting, check if meeting exists and is accessible
+            if not queryset.exists():
+                try:
+                    Meeting.objects.get(
+                        id=meeting_id,
+                        project__team_account=self.request.user.team
+                    )
+                except Meeting.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {"error": "Meeting not found or not accessible."}
+                    )
+        
+        return queryset.order_by('-created_at')  # Most recent first
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ActionItemCreateUpdateSerializer
+        return ActionItemSerializer

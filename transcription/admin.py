@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Meeting, Project
+from .models import Meeting, Project, ActionItem
 import numpy as np
 
 
@@ -33,5 +33,13 @@ class MeetingAdmin(admin.ModelAdmin):
         return fields
 
 
+class ActionItemAdmin(admin.ModelAdmin):
+    list_display = ('text', 'meeting', 'due_by', 'completed', 'created_at')
+    search_fields = ['text', 'meeting__title']
+    list_filter = ['completed', 'meeting']
+    readonly_fields = ['created_at', 'updated_at']
+
+
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Meeting, MeetingAdmin)
+admin.site.register(ActionItem, ActionItemAdmin)
