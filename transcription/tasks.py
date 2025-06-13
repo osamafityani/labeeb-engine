@@ -7,11 +7,11 @@ import uuid
 
 @shared_task
 def process_meeting_uploaded_file(meeting_id):
-    from .models import Meeting
+    from .models import Meeting, ActionItem
     meeting = Meeting.objects.get(id=meeting_id)
 
     transcription = transcription_pipeline(meeting.audio_file.path)
-    summary, meeting_title = summarize(transcription, project=meeting.project)
+    summary, meeting_title, action_items = summarize(transcription, project=meeting.project)
     
     # Create a unique filename using timestamp and UUID
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -27,3 +27,12 @@ def process_meeting_uploaded_file(meeting_id):
 
     meeting.status = 'completed'
     meeting.save()
+
+    # Create action items
+    for action_item in action_items:
+        ActionItem.objects.create(
+            text=action_item['text'],
+            due_by=None,
+            completed=False,
+            meeting=meeting
+        )

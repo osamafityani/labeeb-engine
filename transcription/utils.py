@@ -111,7 +111,7 @@ Project Information:
 """
     
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": f"""You are responsible for documenting meetings. You will be given a transcript for a meeting and project details, and you should write a structured minutes of meeting. Please include the following information in your report, if any information is not available, write "Not mentioned":
 
@@ -124,7 +124,18 @@ Project Information:
 6. Meeting Transcript: (A detailed restructured transcript of everything discussed, mention as many details as possible)
 7. Action Plan: (List any action items, tasks, or next steps mentioned in the meeting)
 
-Please maintain this exact structure in your response. The report should be clear and professional. Meetings and reports are in Arabic."""},
+After the meeting minutes, include a JSON object with the following structure:
+{{
+    "meeting_title": "The deduced meeting title",
+    "action_items": [
+        {{
+            "text": "The action item text"
+        }}
+    ]
+}}
+
+Please maintain this exact structure in your response.
+The report should be clear and professional. Meetings and reports are in Arabic. If some words are mentioned in English, it's okay to keep them"""},
             {
                 "role": "user",
                 "content": content
@@ -133,16 +144,29 @@ Please maintain this exact structure in your response. The report should be clea
     )
     summary = completion.choices[0].message.content
     
-    # Extract meeting name from the summary
+    # Extract meeting name and action items from the summary
     meeting_name = "Untitled Meeting"
-    for line in summary.split('\n'):
-        if line.startswith('1. Meeting Name:'):
-            name = line.replace('1. Meeting Name:', '').strip()
-            if name.lower() != 'not mentioned':
-                meeting_name = name
-            break
+    action_items = []
     
-    return summary, meeting_name
+    # Split the summary to separate the meeting minutes from the JSON
+    parts = summary.split('{')
+    meeting_minutes = parts[0].strip()
+    json_part = '{' + parts[1] if len(parts) > 1 else None
+    
+    if json_part:
+        try:
+            import json
+            data = json.loads(json_part)
+            meeting_name = data.get('meeting_title', meeting_name)
+            action_items = data.get('action_items', [])
+            # Only remove JSON if parsing was successful
+            return meeting_minutes, meeting_name, action_items
+        except json.JSONDecodeError:
+            print("Failed to parse JSON from summary, keeping it in the meeting minutes")
+            # If JSON parsing fails, return the entire summary including the JSON
+            return summary, meeting_name, action_items
+    
+    return meeting_minutes, meeting_name, action_items
 
 
 def num_tokens(text: str, model: str = 'gpt-4o-mini') -> int:
