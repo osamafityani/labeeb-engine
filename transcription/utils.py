@@ -133,7 +133,7 @@ After the meeting minutes, include a JSON object with the following structure th
 }}
 
 Please maintain this exact structure in your response.
-The report should be clear and professional. Meetings and reports are in Arabic. If some words are mentioned in English, it's okay to keep them"""},
+The report should be clear and professional. Meetings and reports are in Arabic. Write everythin in Arabic"""},
             {
                 "role": "user",
                 "content": content
@@ -149,7 +149,7 @@ The report should be clear and professional. Meetings and reports are in Arabic.
     # Split the summary to separate the meeting minutes from the JSON
     parts = summary.split('{')
     meeting_minutes = parts[0].strip()
-    json_part = '{' + parts[1] if len(parts) > 1 else None
+    json_part = '{' + '{'.join(parts[1:]) if len(parts) > 1 else None
     
     if json_part:
         try:
