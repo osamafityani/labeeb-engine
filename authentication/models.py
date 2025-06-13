@@ -3,7 +3,10 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from django.utils.translation import gettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from teams.models import Team
+from transcription.models import Project
 
 
 class CustomUserManager(BaseUserManager):
@@ -70,4 +73,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+@receiver(post_save, sender=CustomUser)
+def create_default_project(sender, instance, created, **kwargs):
+    """
+    Create a default 'Ad-hoc' project for new users
+    """
+    if created and instance.team:
+        Project.objects.create(
+            title="Ad-hoc",
+            description="Meetings with no associated project can be added here.",
+            team_account=instance.team,
+            team=instance.team.name
+        )
 
