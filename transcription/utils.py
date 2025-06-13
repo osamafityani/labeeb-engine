@@ -116,17 +116,15 @@ Project Information:
             {"role": "system", "content": f"""You are responsible for documenting meetings. You will be given a transcript for a meeting and project details, and you should write a structured minutes of meeting. Please include the following information in your report, if any information is not available, write "Not mentioned":
 
 {project_details}
-1. Meeting Name: (Try to deduce this from the transcript)
-2. Related Project: (Use the project information provided above)
-3. Date:
-4. Time:
-5. Participants:
-6. Meeting Transcript: (A detailed restructured transcript of everything discussed, mention as many details as possible)
-7. Action Plan: (List any action items, tasks, or next steps mentioned in the meeting)
+1. Related Project: (Use the project information provided above)
+2. Date:
+3. Time:
+4. Participants:
+5. Minutes of Meeting: (A detailed restructured menutes of meetings of everything discussed, mention as many details as possible)
 
-After the meeting minutes, include a JSON object with the following structure:
+After the meeting minutes, include a JSON object with the following structure that has the meeting title as well as any action items, tasks, or next steps mentioned in the text:
 {{
-    "meeting_title": "The deduced meeting title",
+    "meeting_title": "Try to deduce this from the transcript",
     "action_items": [
         {{
             "text": "The action item text"
