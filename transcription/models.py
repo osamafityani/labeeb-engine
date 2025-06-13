@@ -29,12 +29,18 @@ class Meeting(models.Model):
     summary = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        print(f"audio file {self.audio_file} embeddings {self.embeddings}")
+        # Check if this is a new meeting with audio file
         if self.audio_file and not self.embeddings:
             print(f"Task created for meeting {self.pk}")
             process_meeting_uploaded_file.delay(self.pk)
             super(Meeting, self).save(*args, **kwargs)
         else:
+            # If summary is being updated, update embeddings
+            if self.pk:  # Only for existing meetings
+                old_meeting = Meeting.objects.get(pk=self.pk)
+                if old_meeting.summary != self.summary:
+                    from .utils import embedding_pipeline
+                    self.embeddings = embedding_pipeline(self.summary)
             super(Meeting, self).save(*args, **kwargs)
 
 

@@ -20,19 +20,6 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class MeetingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Meeting
-        fields = ['id', 'title', 'project', 'audio_file', 'transcription_file', 'embeddings', 'status', 'timestamp', 'created_at', 'summary']
-        read_only_fields = ['audio_file', 'transcription_file', 'embeddings', 'status', 'timestamp']
-
-
-class MeetingUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Meeting
-        fields = ['title', 'project', 'summary']  # Allow updating title, project, and summary
-
-
 class ActionItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActionItem
@@ -44,3 +31,21 @@ class ActionItemCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActionItem
         fields = ['text', 'due_by', 'completed', 'meeting']
+
+
+class MeetingSerializer(serializers.ModelSerializer):
+    action_items = ActionItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = ['id', 'title', 'project', 'audio_file', 'transcription_file', 'embeddings', 'status', 'timestamp', 'created_at', 'summary', 'action_items']
+        read_only_fields = ['audio_file', 'transcription_file', 'embeddings', 'status', 'timestamp', 'action_items']
+
+
+class MeetingUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Meeting
+        fields = ['title', 'project', 'summary']  # Allow updating title, project, and summary
+
+
+
