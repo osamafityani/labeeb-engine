@@ -18,11 +18,11 @@ def get_auth_url(request):
     auth_url = calendar_service.get_authorization_url(request.user, state=state)
     return JsonResponse({'auth_url': auth_url})
 
-@api_view(['POST'])
+@api_view(['GET'])
 def handle_callback(request):
     """Handle OAuth callback and store tokens"""
-    code = request.data.get('code')
-    state = request.data.get('state')  # This will contain the user ID
+    code = request.GET.get('code')
+    state = request.GET.get('state')  # This will contain the user ID
     
     if not code or not state:
         return JsonResponse({'error': 'No code or state provided'}, status=400)
