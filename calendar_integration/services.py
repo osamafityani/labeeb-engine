@@ -11,21 +11,22 @@ class MicrosoftCalendarService:
         self.scopes = ['https://graph.microsoft.com/Calendars.Read']
         
     def get_authorization_url(self, user, state=None):
-        """Generate OAuth URL for user"""
+        """Generate OAuth URL and flow dict for user"""
         account = Account((self.client_id, self.client_secret))
-        auth_url = account.connection.get_authorization_url(
+        auth_url, flow = account.connection.get_authorization_url(
             requested_scopes=self.scopes,
             redirect_uri=self.redirect_uri,
             state=state
         )
-        return auth_url
+        # Return both URL and flow dict
+        return auth_url, flow
     
-    def get_tokens_from_code(self, code):
-        """Exchange code for tokens"""
+    def get_tokens_from_code(self, flow, authorization_response_url):
+        """Exchange authorization code for tokens using flow dict"""
         account = Account((self.client_id, self.client_secret))
         token = account.connection.request_token(
-            code=code,
-            redirect_uri=self.redirect_uri
+            authorization_url=authorization_response_url,
+            flow=flow
         )
         return token
     

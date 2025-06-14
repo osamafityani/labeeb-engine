@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from .models import CalendarConnection
 from .services import MicrosoftCalendarService
-import json
 
 User = get_user_model()
 
@@ -14,35 +13,43 @@ User = get_user_model()
 def get_auth_url(request):
     """Get Microsoft OAuth URL for the user"""
     calendar_service = MicrosoftCalendarService()
-    # Include user ID in state parameter as JSON
-    state = json.dumps({'user_id': str(request.user.id)})
-    auth_url = calendar_service.get_authorization_url(request.user, state=state)
+    state = str(request.user.id)  # You can keep this or generate a random state string
+    
+    auth_url, flow = calendar_service.get_authorization_url(request.user, state=state)
+    
+    # Store flow dict in session for later use in callback
+    request.session['o365_auth_flow'] = flow
+    
     return JsonResponse({'auth_url': auth_url})
+
 
 @api_view(['GET'])
 def handle_callback(request):
     """Handle OAuth callback and store tokens"""
     code = request.GET.get('code')
-    state = request.GET.get('state')  # This will contain the JSON with user ID
+    state = request.GET.get('state')  # This is the state you passed earlier
     
     if not code or not state:
         return JsonResponse({'error': 'No code or state provided'}, status=400)
     
     try:
-        # Parse the state JSON to get user ID
-        state_data = json.loads(state)
-        user_id = state_data.get('user_id')
-        if not user_id:
-            raise ValueError("No user_id in state")
-            
-        user = User.objects.get(id=user_id)
-    except (json.JSONDecodeError, ValueError, User.DoesNotExist) as e:
-        return JsonResponse({'error': f'Invalid state parameter: {str(e)}'}, status=400)
+        user = User.objects.get(id=state)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid state parameter'}, status=400)
+    
+    # Retrieve stored flow dict from session
+    flow = request.session.get('o365_auth_flow')
+    if not flow:
+        return JsonResponse({'error': 'OAuth flow information missing'}, status=400)
     
     calendar_service = MicrosoftCalendarService()
-    tokens = calendar_service.get_tokens_from_code(code)
     
-    # Store tokens in database
+    # Build full redirect URL from request (including code and state)
+    redirect_response_url = request.build_absolute_uri()
+    
+    tokens = calendar_service.get_tokens_from_code(flow, redirect_response_url)
+    
+    # Store tokens in the database
     CalendarConnection.objects.update_or_create(
         user=user,
         defaults={
@@ -51,6 +58,9 @@ def handle_callback(request):
             'token_expiry': tokens.get('expires_at')
         }
     )
+    
+    # Optionally clear the flow from session
+    del request.session['o365_auth_flow']
     
     return JsonResponse({'status': 'success'})
 
