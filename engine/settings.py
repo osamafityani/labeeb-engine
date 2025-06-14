@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'interface',
     'transcription',
     'teams',
+    'calendar_integration',
     'django_celery_results',
     'django.contrib.admin',
     'django.contrib.auth',
