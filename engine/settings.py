@@ -172,3 +172,7 @@ REST_FRAMEWORK = {
     ],
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler'
 }
+
+MS_CLIENT_ID = 'e690c24e-73e2-4b84-bc56-d1d006d111b8'
+MS_CLIENT_SECRET = '1xc8Q~QiFg6t5Zl-EFKoEQIJgN2V7bg.J8j5PdnZ'
+MS_REDIRECT_URI = 'http://salesubscribe.com/api/calendar/callback/'

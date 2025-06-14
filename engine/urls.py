@@ -8,4 +8,5 @@ urlpatterns = [
     path('interface/', include('interface.urls')),
     path('auth/', include('authentication.urls')),
     path('profiles/', include('profiles.urls')),
+    path('calendar/', include('calendar_integration.urls')),
 ]
