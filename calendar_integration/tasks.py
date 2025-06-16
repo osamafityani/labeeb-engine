@@ -2,7 +2,7 @@ from celery import shared_task
 from datetime import datetime, timedelta
 import pytz
 from .services import MicrosoftCalendarService
-from .models import CalendarConnection
+from .models import O365Token
 from bots.tasks import record_meeting
 from transcription.models import Project
 
@@ -13,13 +13,14 @@ def check_upcoming_meetings():
     This task should be scheduled to run every minute.
     """
     # Get all calendar connections
-    connections = CalendarConnection.objects.all()
-    calendar_service = MicrosoftCalendarService()
+    connections = O365Token.objects.all()
     
     for connection in connections:
         try:
+            calendar_service = MicrosoftCalendarService(connection.user)
+
             # Get upcoming meetings
-            meetings = calendar_service.get_upcoming_meetings(connection)
+            meetings = calendar_service.get_upcoming_meetings()
             
             for meeting in meetings:
                 # Skip if no meeting URL
@@ -29,7 +30,7 @@ def check_upcoming_meetings():
                 # Parse meeting times
                 start_time = datetime.fromisoformat(meeting['start_time'].replace('Z', '+00:00'))
                 now = datetime.now(pytz.UTC)
-                
+                print("start_time: ", start_time, "Now: ", now)
                 # Start recording 1 minute before the meeting starts
                 if timedelta(minutes=0) <= (start_time - now) <= timedelta(minutes=1):
                     # Create a project for the meeting if it doesn't exist
