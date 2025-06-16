@@ -19,7 +19,9 @@ def get_auth_url(request):
     state = str(request.user.id)  # You can keep this or generate a random state string
     
     auth_url, flow = calendar_service.get_authorization_url()
-    
+    auth_url = auth_url.replace(f'state={flow['state']}', f'state={state}')
+    flow['state'] = state
+    flow['auth_uri'] = auth_url
     # Store flow in CalendarConnection
     CalendarConnection.objects.update_or_create(
         user=request.user,
