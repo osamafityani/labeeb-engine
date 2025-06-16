@@ -20,6 +20,7 @@ def get_auth_url(request):
     
     # Store flow dict in session for later use in callback
     request.session['o365_auth_flow'] = flow
+    print("FLOW: ", flow)
     
     return JsonResponse({'auth_url': auth_url})
 
@@ -29,7 +30,7 @@ def handle_callback(request):
     """Handle OAuth callback and store tokens"""
     code = request.GET.get('code')
     state = request.GET.get('state')  # This is the state you passed earlier
-    flow = request.session.get('oauth_flow')
+    flow = request.session.get('o365_auth_flow')
 
     if not code or not state:
         return JsonResponse({'error': 'No code or state provided'}, status=400)
