@@ -20,8 +20,11 @@ def get_auth_url(request):
     
     auth_url, flow = calendar_service.get_authorization_url()
     
-    # Store flow dict in session for later use in callback
-    request.session['o365_auth_flow'] = flow
+    # Store flow in CalendarConnection
+    CalendarConnection.objects.update_or_create(
+        user=request.user,
+        defaults={'flow': flow}
+    )
 
     if flow is None:
         return JsonResponse({'message': "Flow is None"})
@@ -34,15 +37,16 @@ def handle_callback(request):
     """Handle OAuth callback and store tokens"""
     code = request.GET.get('code')
     state = request.GET.get('state')  # This is the state you passed earlier
-    flow = request.session.get('o365_auth_flow')
 
     if not code or not state:
         return JsonResponse({'error': 'No code or state provided'}, status=400)
     
     try:
         user = User.objects.get(id=state)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Invalid state parameter'}, status=400)
+        connection = CalendarConnection.objects.get(user=user)
+        flow = connection.flow
+    except (User.DoesNotExist, CalendarConnection.DoesNotExist):
+        return JsonResponse({'error': 'Invalid state parameter or no flow found'}, status=400)
     
     calendar_service = MicrosoftCalendarService()
     
@@ -51,16 +55,12 @@ def handle_callback(request):
     
     tokens = calendar_service.get_tokens_from_code(flow, redirect_response_url)
     
-    # Store tokens in the database
-    CalendarConnection.objects.update_or_create(
-        user=user,
-        defaults={
-            'microsoft_token': tokens,
-            'refresh_token': tokens.get('refresh_token'),
-            'token_expiry': tokens.get('expires_at')
-        }
-    )
-    
+    # Store tokens in the database and clear the flow
+    connection.microsoft_token = tokens
+    connection.refresh_token = tokens.get('refresh_token')
+    connection.token_expiry = tokens.get('expires_at')
+    connection.flow = None  # Clear the flow after use
+    connection.save()
     
     return JsonResponse({'status': 'success'})
 
