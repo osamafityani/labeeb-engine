@@ -1,11 +1,14 @@
 from django.conf import settings
 from django.http import JsonResponse
+from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from .models import CalendarConnection
 from .services import MicrosoftCalendarService
 from django.urls import reverse
+from rest_framework import status
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -15,7 +18,7 @@ User = get_user_model()
 @permission_classes([IsAuthenticated])
 def get_auth_url(request):
     """Get Microsoft OAuth URL for the user"""
-    calendar_service = MicrosoftCalendarService()
+    calendar_service = MicrosoftCalendarService(request.user)
     state = str(request.user.id)  # You can keep this or generate a random state string
     
     auth_url, flow = calendar_service.get_authorization_url()
@@ -50,21 +53,18 @@ def handle_callback(request):
     except (User.DoesNotExist, CalendarConnection.DoesNotExist):
         return JsonResponse({'error': 'Invalid state parameter or no flow found'}, status=400)
     
-    calendar_service = MicrosoftCalendarService()
+    calendar_service = MicrosoftCalendarService(user)
     
     # Build full redirect URL from request (including code and state)
     redirect_response_url = request.build_absolute_uri()
     
-    tokens = calendar_service.get_tokens_from_code(flow, redirect_response_url)
+    success = calendar_service.get_tokens_from_code(flow, redirect_response_url)
     
-    # Store tokens in the database and clear the flow
-    connection.microsoft_token = tokens
-    connection.refresh_token = tokens.get('refresh_token')
-    connection.token_expiry = tokens.get('expires_at')
-    connection.flow = None  # Clear the flow after use
-    connection.save()
+    if success:
+        return Response({"status": 'success'}, status=status.HTTP_200_OK)
+    else:
+        return Response({"status": 'failure'}, status=status.HTTP_400_BAD_REQUEST)
     
-    return JsonResponse({'status': 'success'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -72,7 +72,7 @@ def get_upcoming_meetings(request):
     """Get user's upcoming meetings"""
     try:
         connection = CalendarConnection.objects.get(user=request.user)
-        calendar_service = MicrosoftCalendarService()
+        calendar_service = MicrosoftCalendarService(request.user)
         meetings = calendar_service.get_upcoming_meetings(connection)
         return JsonResponse({'meetings': meetings})
     except CalendarConnection.DoesNotExist:
