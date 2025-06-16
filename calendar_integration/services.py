@@ -20,13 +20,12 @@ class MicrosoftCalendarService:
         # Return both URL and flow dict
         return auth_url, flow
     
-    def get_tokens_from_code(self, code, redirect_uri):
+    def get_tokens_from_code(self, flow, authorization_response_url):
         """Exchange authorization code for tokens using flow dict"""
         account = Account((self.client_id, self.client_secret))
         token = account.connection.request_token(
-            grant_type='authorization_code',
-            code=code,
-            redirect_uri=redirect_uri
+            authorization_url=authorization_response_url,
+            flow=flow
         )
         return token
     

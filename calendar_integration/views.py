@@ -29,7 +29,8 @@ def handle_callback(request):
     """Handle OAuth callback and store tokens"""
     code = request.GET.get('code')
     state = request.GET.get('state')  # This is the state you passed earlier
-    
+    flow = request.session.get('oauth_flow')
+
     if not code or not state:
         return JsonResponse({'error': 'No code or state provided'}, status=400)
     
@@ -41,9 +42,9 @@ def handle_callback(request):
     calendar_service = MicrosoftCalendarService()
     
     # Build full redirect URL from request (including code and state)
-    redirect_response_url = request.build_absolute_uri(reverse('calendar_integration:handle_callback'))
+    redirect_response_url = request.build_absolute_uri()
     
-    tokens = calendar_service.get_tokens_from_code(code, redirect_response_url)
+    tokens = calendar_service.get_tokens_from_code(flow, redirect_response_url)
     
     # Store tokens in the database
     CalendarConnection.objects.update_or_create(
