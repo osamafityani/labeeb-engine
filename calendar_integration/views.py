@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from .models import CalendarConnection
 from .services import MicrosoftCalendarService
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -40,9 +41,9 @@ def handle_callback(request):
     calendar_service = MicrosoftCalendarService()
     
     # Build full redirect URL from request (including code and state)
-    redirect_response_url = request.build_absolute_uri()
+    redirect_response_url = request.build_absolute_uri(reverse('calendar_integration:handle_callback'))
     
-    tokens = calendar_service.get_tokens_from_code(redirect_response_url)
+    tokens = calendar_service.get_tokens_from_code(code, redirect_response_url)
     
     # Store tokens in the database
     CalendarConnection.objects.update_or_create(
