@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from .models import CalendarConnection
 from .services import MicrosoftCalendarService
 from django.urls import reverse
+import logging
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -16,11 +18,12 @@ def get_auth_url(request):
     calendar_service = MicrosoftCalendarService()
     state = str(request.user.id)  # You can keep this or generate a random state string
     
-    auth_url, flow = calendar_service.get_authorization_url(request.user, state=state)
+    auth_url, flow = calendar_service.get_authorization_url()
     
     # Store flow dict in session for later use in callback
     request.session['o365_auth_flow'] = flow
-    print("FLOW: ", flow)
+    logger.debug(f"Flow: {flow}")
+    logger.error(f"Flow: {flow}")
     
     return JsonResponse({'auth_url': auth_url})
 

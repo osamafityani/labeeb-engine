@@ -10,7 +10,7 @@ class MicrosoftCalendarService:
         self.redirect_uri = settings.MS_REDIRECT_URI
         self.scopes = ['https://graph.microsoft.com/Calendars.Read']
         
-    def get_authorization_url(self, user):
+    def get_authorization_url(self):
         """Generate OAuth URL and flow dict for user"""
         account = Account((self.client_id, self.client_secret))
         auth_url, flow = account.connection.get_authorization_url(
