@@ -22,8 +22,7 @@ def get_auth_url(request):
     
     # Store flow dict in session for later use in callback
     request.session['o365_auth_flow'] = flow
-    logger.debug(f"Flow: {flow}")
-    logger.error(f"Flow: {flow}")
+    print(f"flow: {flow}")
     
     return JsonResponse({'auth_url': auth_url})
 
