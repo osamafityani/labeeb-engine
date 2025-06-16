@@ -41,7 +41,7 @@ def get_auth_url(request):
 def handle_callback(request):
     """Handle OAuth callback and store tokens"""
     code = request.GET.get('code')
-    state = request.GET.get('state')  # This is the state you passed earlier
+    state = request.GET.get('state')
 
     if not code or not state:
         return JsonResponse({'error': 'No code or state provided'}, status=400)
@@ -73,7 +73,11 @@ def get_upcoming_meetings(request):
     try:
         connection = CalendarConnection.objects.get(user=request.user)
         calendar_service = MicrosoftCalendarService(request.user)
-        meetings = calendar_service.get_upcoming_meetings(connection)
+        try:
+            meetings = calendar_service.get_upcoming_meetings(connection)
+        except:
+            return JsonResponse({'meetings': "Not authenticated"})
+
         return JsonResponse({'meetings': meetings})
     except CalendarConnection.DoesNotExist:
         return JsonResponse({'error': 'Calendar not connected'}, status=404)
