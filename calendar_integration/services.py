@@ -23,11 +23,14 @@ class MicrosoftCalendarService:
     def get_tokens_from_code(self, flow, authorization_response_url):
         """Exchange authorization code for tokens using flow dict"""
         account = Account((self.client_id, self.client_secret))
-        token = account.connection.request_token(
+        success = account.connection.request_token(
             authorization_url=authorization_response_url,
             flow=flow
         )
-        return token
+
+        if not success:
+            raise Exception("Failed to exchange code for tokens")
+        return account.connection.token
     
     def get_upcoming_meetings(self, connection):
         """Get upcoming meetings for a user"""
