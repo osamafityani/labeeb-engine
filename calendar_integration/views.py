@@ -37,11 +37,6 @@ def handle_callback(request):
     except User.DoesNotExist:
         return JsonResponse({'error': 'Invalid state parameter'}, status=400)
     
-    # Retrieve stored flow dict from session
-    flow = request.session.get('o365_auth_flow')
-    if not flow:
-        return JsonResponse({'error': 'OAuth flow information missing'}, status=400)
-    
     calendar_service = MicrosoftCalendarService()
     
     # Build full redirect URL from request (including code and state)
