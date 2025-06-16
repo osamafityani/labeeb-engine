@@ -40,9 +40,6 @@ class MicrosoftCalendarService:
             authorization_url=authorization_response_url,
             flow=flow
         )
-        if success:
-            schedule = account.schedule()
-            calendar = schedule.get_default_calendar()
 
         return success
     
@@ -51,17 +48,23 @@ class MicrosoftCalendarService:
         account = self.get_account()   
 
         schedule = account.schedule()
-        calendar = schedule.get_default_calendar()
+        response = account.connection.get(
+            'https://graph.microsoft.com/v1.0/me/calendar',
+            params={
+                '$select': 'id,name'  # Exclude problematic fields
+            }
+        )
         
+        # Step 3: Create a Calendar object manually from response
+        from O365.calendar import Calendar
+
+        calendar_data = response.json()
+        calendar = Calendar(parent=schedule, **calendar_data)        
         # Get events for next 24 hours
         now = datetime.now(pytz.UTC)
         end_time = now.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        events = calendar.get_events(
-            start=now,
-            end=end_time,
-            include_recurring=True
-        )
+        events = calendar.get_events(start_recurring=now, end_recurring=end_time, include_recurring=True)
         
         meetings = []
         for event in events:
