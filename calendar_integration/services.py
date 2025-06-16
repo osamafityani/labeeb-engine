@@ -30,7 +30,7 @@ class MicrosoftCalendarService:
 
         if not success:
             raise Exception("Failed to exchange code for tokens")
-        return account.connection.token
+        return account.connection.token_backend.get_token()
     
     def get_upcoming_meetings(self, connection):
         """Get upcoming meetings for a user"""
