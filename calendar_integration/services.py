@@ -30,7 +30,19 @@ class MicrosoftCalendarService:
 
         if not success:
             raise Exception("Failed to exchange code for tokens")
-        return account.connection.token_backend.get_token()
+        
+        token_backend = account.connection.token_backend
+
+        # After saving, the backend's .token property holds the token dict
+        token = getattr(token_backend, 'token', None)
+        if token is None:
+            # If not present, try loading manually (DB-backed backends might require this)
+            token = token_backend.load_token()
+
+        if token is None:
+            raise Exception("TokenBackend unexpectedly has no token stored")
+
+        return token
     
     def get_upcoming_meetings(self, connection):
         """Get upcoming meetings for a user"""
