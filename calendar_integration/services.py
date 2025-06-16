@@ -43,9 +43,13 @@ class MicrosoftCalendarService:
 
         return success
     
-    def get_upcoming_meetings(self, connection):
+    def get_upcoming_meetings(self):
         """Get upcoming meetings for a user"""
-        account = self.get_account()        
+        account = self.get_account()   
+
+        if not account.is_authenticated:
+            raise Exception()
+
         schedule = account.schedule()
         calendar = schedule.get_default_calendar()
         
