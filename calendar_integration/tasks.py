@@ -36,6 +36,7 @@ def check_upcoming_meetings():
                     # Create a project for the meeting if it doesn't exist
                     project, created = Project.objects.get_or_create(
                         title=f"Scheduled Meetings",
+                        team_account=connection.user.team,
                         description=f"Automatically recorded meetings from Microsoft Calendar\n",
                     )
                     
