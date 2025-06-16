@@ -42,7 +42,7 @@ def handle_callback(request):
     # Build full redirect URL from request (including code and state)
     redirect_response_url = request.build_absolute_uri()
     
-    tokens = calendar_service.get_tokens_from_code(flow, redirect_response_url)
+    tokens = calendar_service.get_tokens_from_code(redirect_response_url)
     
     # Store tokens in the database
     CalendarConnection.objects.update_or_create(
@@ -54,8 +54,6 @@ def handle_callback(request):
         }
     )
     
-    # Optionally clear the flow from session
-    del request.session['o365_auth_flow']
     
     return JsonResponse({'status': 'success'})
 
