@@ -22,19 +22,19 @@ class CalendarConnectionAdmin(admin.ModelAdmin):
 
 @admin.register(O365Token)
 class O365TokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'access_token', 'refresh_token', 'expires_at', 'created_at', 'updated_at')
-    list_filter = ('created_at', 'updated_at', 'expires_at')
+    list_display = ('user', 'last_updated')
+    list_filter = ('last_updated',)
     search_fields = ('user__email', 'user__username')
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('last_updated',)
     fieldsets = (
         ('User Information', {
             'fields': ('user',)
         }),
         ('Token Information', {
-            'fields': ('access_token', 'refresh_token', 'expires_at')
+            'fields': ('token',)
         }),
         ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': ('last_updated',),
             'classes': ('collapse',)
         }),
     )
