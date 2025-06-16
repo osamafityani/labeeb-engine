@@ -45,9 +45,7 @@ class MicrosoftCalendarService:
     
     def get_upcoming_meetings(self, connection):
         """Get upcoming meetings for a user"""
-        account = self.get_account()
-        account.connection.token_backend.token = connection.microsoft_token
-        
+        account = self.get_account()        
         schedule = account.schedule()
         calendar = schedule.get_default_calendar()
         
