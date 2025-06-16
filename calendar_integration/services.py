@@ -40,6 +40,9 @@ class MicrosoftCalendarService:
             authorization_url=authorization_response_url,
             flow=flow
         )
+        if success:
+            schedule = account.schedule()
+            calendar = schedule.get_default_calendar()
 
         return success
     
