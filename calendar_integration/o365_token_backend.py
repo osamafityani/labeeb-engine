@@ -4,6 +4,7 @@ from django.utils import timezone
 
 class DjangoTokenBackend(BaseTokenBackend):
     def __init__(self, user):
+        super().__init__()
         self.user = user
 
     def get_token(self):
