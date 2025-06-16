@@ -71,12 +71,8 @@ def handle_callback(request):
 def get_upcoming_meetings(request):
     """Get user's upcoming meetings"""
     try:
-        connection = CalendarConnection.objects.get(user=request.user)
         calendar_service = MicrosoftCalendarService(request.user)
-        try:
-            meetings = calendar_service.get_upcoming_meetings(connection)
-        except:
-            return JsonResponse({'meetings': "Not authenticated"})
+        meetings = calendar_service.get_upcoming_meetings()
 
         return JsonResponse({'meetings': meetings})
     except CalendarConnection.DoesNotExist:
