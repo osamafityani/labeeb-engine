@@ -32,7 +32,7 @@ def check_upcoming_meetings():
                 now = datetime.now(pytz.UTC)
                 print("start_time: ", start_time, "Now: ", now)
                 # Start recording 1 minute before the meeting starts
-                if timedelta(minutes=0) <= (start_time - now) <= timedelta(minutes=1):
+                if timedelta(minutes=0) <= (start_time - now) <= timedelta(minutes=2):
                     # Create a project for the meeting if it doesn't exist
                     project, created = Project.objects.get_or_create(
                         title=f"Scheduled Meetings",
