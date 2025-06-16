@@ -26,7 +26,7 @@ def get_auth_url(request):
     if flow is None:
         return JsonResponse({'message': "Flow is None"})
     
-    return JsonResponse({'auth_url': auth_url})
+    return JsonResponse({'auth_url': auth_url, 'flow': str(flow)})
 
 
 @api_view(['GET'])
