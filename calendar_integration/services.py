@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, time
 import pytz
 from O365 import Account
 from django.conf import settings
@@ -59,10 +59,12 @@ class MicrosoftCalendarService:
         from O365.calendar import Calendar
 
         calendar_data = response.json()
-        calendar = Calendar(parent=schedule, **calendar_data)        
+        calendar = Calendar(parent=schedule, **calendar_data) 
+
         # Get events for next 24 hours
         now = datetime.now(pytz.UTC)
-        end_time = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        # End of the current day in UTC (23:59:59.999999)
+        end_time = datetime.combine(now.date(), time.max).replace(tzinfo=pytz.UTC)
         
         events = calendar.get_events(start_recurring=now, end_recurring=end_time, include_recurring=True)
         
@@ -86,7 +88,6 @@ class MicrosoftCalendarService:
                         'title': event.subject,
                         'start_time': start_time.isoformat(),
                         'end_time': end_time.isoformat(),
-                        'organizer': event.organizer.get('emailAddress', {}).get('address', 'Unknown'),
                         'attendees': [
                             attendee.get('emailAddress', {}).get('address', 'Unknown')
                             for attendee in event.attendees
